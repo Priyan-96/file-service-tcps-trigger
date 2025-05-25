@@ -49,6 +49,33 @@ class FileServiceTcpsTriggerStack(Stack):
 
         file_topic.add_subscription(subscriptions.SqsSubscription(tcps_trigger_queue, filter_policy=filter_policy))
 
+        # Create DLQ for Folder Delete Revision Queue
+        folder_delete_dlq = sqs.Queue(self, construct_id + "-DLQ",
+            retention_period=Duration.days(14),
+            queue_name="FolderDeleteJobDLQ" + resource_name_suffix + ".fifo",
+            fifo=True
+        )
+        folder_delete_revision_dlq = DeadLetterQueue(max_receive_count=3, queue=folder_delete_dlq)
+
+        # Create SQS FIFO Queue for Folder Delete Revision
+        folder_delete_revision_queue = sqs.Queue(self, construct_id + "-Queue",
+            queue_name="FolderDeleteRevisionQueue" + resource_name_suffix + ".fifo",
+            fifo=True,
+            content_based_deduplication=True,
+            dead_letter_queue=folder_delete_revision_dlq,
+            visibility_timeout=Duration.minutes(5)
+        )
+
+        # Filter Policy for Folder Delete Revision Queue
+        folder_delete_revision_filter_policy = {
+            "FOLDER_ASYNC_ACTION": sns.SubscriptionFilter.string_filter(
+                allowlist=["FOLDER_DELETION"]
+            )
+        }
+        
+        # Subscribe folder delete revision queue to existing topic
+        file_topic.add_subscription(subscriptions.SqsSubscription(folder_delete_revision_queue, filter_policy=folder_delete_revision_filter_policy))
+
         # parameter store
         ssm_tid_credentials = ssm.StringParameter. \
             from_secure_string_parameter_attributes(self, construct_id + "-ssm-tid-credentials", version=1,
@@ -76,11 +103,41 @@ class FileServiceTcpsTriggerStack(Stack):
                                                       "ECOM_REGION": env_context['ecomRegion'],
                                                       "TC_ENVIRONMENT": tc_env.upper()
                                                   }, tracing=Tracing.ACTIVE)
+        
+        folder_delete_revision_lambda_fn = _lambda.Function(self, construct_id + "-Lambda",
+                                            timeout=Duration.minutes(2),
+                                            code=Code.from_asset(
+                                                path=os.getcwd() + "/functions/FolderDeleteRevisionFunction/",
+                                                bundling=BundlingOptions(
+                                                    image=Runtime.PYTHON_3_8.bundling_image,
+                                                    command=["bash", "-c", "pip install -r requirements.txt -t /asset-output && cp -au . /asset-output"]
+                                                )
+                                            ),
+                                            handler="folder_delete_revision_fn.handler",
+                                            runtime=Runtime.PYTHON_3_8,
+                                            memory_size=1024,
+                                            description="Logs folder delete revisions",
+                                            function_name="FolderDeleteRevisionLambda" + resource_name_suffix,
+                                            environment={
+                                                "TID_CREDENTIALS_PARAMETER": ssm_tid_credentials.parameter_name,
+                                                "TCPS_BASE_URL": env_context['tcpsUrl'],
+                                                "TC_ENVIRONMENT": tc_env.upper(),
+                                                "FOLDER_DELETE_REVISION_QUEUE_URL": folder_delete_revision_queue.queue_url
+                                            },
+                                            tracing=Tracing.ACTIVE
+                                        )
 
         # grant access to read tid credentials from parameter store
         ssm_tid_credentials.grant_read(tcps_trigger_lambda_fn)
+        ssm_tid_credentials.grant_read(folder_delete_revision_lambda_fn)
+        
+        # grant lambda permission to read from folder delete revision queue
+        folder_delete_revision_queue.grant_consume_messages(folder_delete_revision_lambda_fn)
+
         # Add lambda trigger
         tcps_trigger_lambda_fn.add_event_source(SqsEventSource(tcps_trigger_queue, batch_size=1))
+        folder_delete_revision_lambda_fn.add_event_source(SqsEventSource(folder_delete_revision_queue, batch_size=1))
+
         # Create lambda alarms
         error_alarm = tcps_trigger_lambda_fn.metric_errors(statistic="p99", period=Duration.seconds(60)) \
             .create_alarm(self, construct_id + "-LambdaErrorAlarm",
@@ -98,6 +155,7 @@ class FileServiceTcpsTriggerStack(Stack):
                           )
         alarms.append(throttle_alarm)
         self.add_alarm_action(construct_id + "-AlarmAction", alarms, tc_env)
+        
         # Add Exports so that resources created in this stack can be imported in other stacks
         CfnOutput(self, construct_id + "-LambdaArnExport", value=tcps_trigger_lambda_fn.function_arn,
                   export_name="FsTcpsTriggerFunction" + resource_name_suffix)
