@@ -1,0 +1,93 @@
+{
+  "app": "python app.py",
+  "context": {
+    "int": {
+      "us1": {
+        "awsAccountId": "805451413154",
+        "awsRegion": "us-east-1",
+        "tcpsUrl": "https://app.int.connect.trimble.com",
+        "ecomUrl": "https://ecom.int.connect.trimble.com",
+        "ecomRegion": "na",
+        "stackName": "TC-INT-FILES-US1"
+      }
+    },
+    "qa": {
+      "us1": {
+        "awsAccountId": "805451413154",
+        "awsRegion": "us-east-1",
+        "tcpsUrl": "https://app.qa.connect.trimble.com",
+        "ecomUrl": "https://ecom.qa.connect.trimble.com",
+        "ecomRegion": "na",
+        "stackName": "TC-QA-FILES-US1"
+      },
+      "eu1": {
+        "awsAccountId": "805451413154",
+        "awsRegion": "eu-west-1",
+        "tcpsUrl": "https://app21.qa.connect.trimble.com",
+        "ecomUrl": "https://ecom.qa.connect.trimble.com",
+        "ecomRegion": "eu",
+        "stackName": "TC-QA-FILES-EU1"
+      }
+    },
+    "stage": {
+      "us1": {
+        "awsAccountId": "805451413154",
+        "awsRegion": "us-east-1",
+        "tcpsUrl": "https://app.stage.connect.trimble.com",
+        "ecomUrl": "https://ecom.stage.connect.trimble.com",
+        "ecomRegion": "na",
+        "stackName": "TC-STAGE-FILES-US1"
+      },
+      "ap1": {
+        "awsAccountId": "805451413154",
+        "awsRegion": "ap-southeast-1",
+        "tcpsUrl": "https://app31.stage.connect.trimble.com",
+        "ecomUrl": "https://ecom.stage.connect.trimble.com",
+        "ecomRegion": "ap",
+        "stackName": "TC-STAGE-FILES-AP1"
+      },
+      "ap2": {
+        "awsAccountId": "805451413154",
+        "awsRegion": "ap-southeast-2",
+        "tcpsUrl": "https://app32.stage.connect.trimble.com",
+        "ecomUrl": "https://ecom.stage.connect.trimble.com",
+        "ecomRegion": "ap",
+        "stackName": "TC-STAGE-FILES-AP2"
+      }
+    },
+    "prod": {
+      "us1": {
+        "awsAccountId": "354755235860",
+        "awsRegion": "us-east-1",
+        "tcpsUrl": "https://app.connect.trimble.com",
+        "ecomUrl": "https://ecom.connect.trimble.com",
+        "ecomRegion": "na",
+        "stackName": "TC-PROD-FILES-US1"
+      },
+      "eu1": {
+        "awsAccountId": "354755235860",
+        "awsRegion": "eu-west-1",
+        "tcpsUrl": "https://app21.connect.trimble.com",
+        "ecomUrl": "https://ecom.connect.trimble.com",
+        "ecomRegion": "eu",
+        "stackName": "TC-PROD-FILES-EU1"
+      },
+      "ap1": {
+        "awsAccountId": "354755235860",
+        "awsRegion": "ap-southeast-1",
+        "tcpsUrl": "https://app31.connect.trimble.com",
+        "ecomUrl": "https://ecom.connect.trimble.com",
+        "ecomRegion": "ap",
+        "stackName": "TC-PROD-FILES-AP1"
+      },
+      "ap2": {
+        "awsAccountId": "354755235860",
+        "awsRegion": "ap-southeast-2",
+        "tcpsUrl": "https://app32.connect.trimble.com",
+        "ecomUrl": "https://ecom.connect.trimble.com",
+        "ecomRegion": "ap",
+        "stackName": "TC-PROD-FILES-AP2"
+      }
+    }
+  }
+}
