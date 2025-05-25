@@ -22,13 +22,12 @@ class FolderDeleteRevisionService(object):
         :param folder_event: folder service event derived from sns message
         """
         folder_id = folder_event.input.folder_id if folder_event else "Unknown"
-        log.info(f'Performing Folder Delete Revision for the folder {folder_id}')
         # Create request body
         request_body = FolderDeleteRevisionService.prepare_request_body(folder_event)
         # Create request headers
-        request_headers = self.__identity_auth.prepare_request_headers()
+        request_headers = self.__identity_auth.prepare_req
         # Prepare API Endpoint
-        api_endpoint = self.__tcps_base_url + "/tc/api/2.0/files/logRevisionAsync"
+        api_endpoint  self.__tcps_base_url + "/tc/api/2.0/files/logRevisionAsync"
         # Perform the TCPS API call
         try:
             api_client.ApiClient.make_request("POST", api_endpoint, request_headers, request_body)
@@ -47,8 +46,8 @@ class FolderDeleteRevisionService(object):
         """
         request_body = {
             "userId": folder_event.input.user_id,
-            "folderId": folder_event.input.folder_id,
-            "activityId": folder_event.input.activity_id,
+            "folderId": folder_event.input.f_id,
+            "activityId": folder_event.input.a_id,
             "downloadUrl": folder_event.result.download_url
         }
         return request_body

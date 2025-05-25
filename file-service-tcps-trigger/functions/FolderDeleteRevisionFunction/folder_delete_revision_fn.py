@@ -10,7 +10,7 @@ import pyckson
 import os
 import requests
 
-from model.folder_event import FolderDeleteQueueMessage
+from model.f_event import FolderDeleteQueueMessage
 from folder_delete_revision_service import FolderDeleteRevisionService
 from utils import logging_utils
 
@@ -40,13 +40,13 @@ def handler(event, context):
             # Convert sns event string to dict
             sns_event: Dict = json.loads(record['body'])
             # Get folder event string from sns message
-            folder_event_str: str = sns_event['Message']
+            f_event_str: str = sns_event['Message']
             # Convert the folder event string to FolderDeleteQueueMessage object
-            folder_event: FolderDeleteQueueMessage = pyckson.parse(FolderDeleteQueueMessage, json.loads(folder_event_str))
+            f_event: FolderDeleteQueueMessage = pyckson.parse(FolderDeleteQueueMessage, json.loads(f_event_str))
             # Update log
-            log.info(f'Received event {folder_event}')
+            log.info(f'Received event {f_event}')
             
-            folder_delete_revision_service.invoke_tcps_api(folder_event)
+            folder_delete_revision_service.invoke_tcps_api(f_event)
     except Exception as e:
         log.error(f'Exception while processing the folder event {e}')
         # throw the exception so that lambda understands that the message is not processed successfully

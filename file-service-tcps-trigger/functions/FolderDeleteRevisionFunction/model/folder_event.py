@@ -8,8 +8,8 @@ pyckson.configure_explicit_nulls(use_explicit_nulls=True)
 
 @dataclass
 class FolderDeleteInput(object):
-    folder_id: str
-    activity_id: str
+    f_id: str
+    a_id: str
 
 @dataclass
 class FolderDeleteError(object):
