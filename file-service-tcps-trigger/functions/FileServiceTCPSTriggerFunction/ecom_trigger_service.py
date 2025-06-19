@@ -2,10 +2,10 @@
 import logging as log
 import os
 
-from auth.identity_auth import IdentityAuth
+from tcps_common.auth.identity_auth import IdentityAuth
 from model.file_event import FileOrFolderEvent, FileOrFolderData
-from utils import api_client
-from utils.api_client import ApiError
+from tcps_common.utils import api_client
+from tcps_common.utils.api_client import ApiError
 
 
 class EcomTriggerService(object):
