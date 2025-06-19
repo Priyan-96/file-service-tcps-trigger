@@ -11,7 +11,7 @@ import pyckson
 from ecom_trigger_service import EcomTriggerService
 from model.file_event import FileOrFolderEvent
 from tcps_trigger_service import TCPSTriggerService
-from utils import logging_utils
+from tcps_common.utils import logging_utils
 
 # x-ray tracing configuration
 from aws_xray_sdk.core import xray_recorder
