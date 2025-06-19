@@ -1,3 +1,4 @@
 ../TcpsCommon
-Pyckson==1.13.1
+pyckson
 aws-xray-sdk==2.8.0
+
