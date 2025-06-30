@@ -49,6 +49,42 @@ class FileServiceTcpsTriggerStack(Stack):
 
         file_topic.add_subscription(subscriptions.SqsSubscription(tcps_trigger_queue, filter_policy=filter_policy))
 
+        # Create DLQ for Folder Delete Revision Queue
+        folder_delete_dlq = sqs.Queue(self, "FolderDeleteRevision-DLQ",
+            retention_period=Duration.days(14),
+            queue_name="FolderDeleteRevisionDLQ" + resource_name_suffix + ".fifo",
+            fifo=True
+        )
+        folder_delete_revision_dlq = DeadLetterQueue(max_receive_count=3, queue=folder_delete_dlq)
+        
+        # Create alarm for folder delete dead letter queue
+        folder_delete_dlq_alarm = folder_delete_dlq.metric_approximate_number_of_messages_visible(statistic="sum", period=Duration.seconds(60))\
+            .create_alarm(self, "FolderDeleteRevision-DlqAlarm",
+                          alarm_name="FolderDeleteRevisionDeadLetterQueueAlarm" + resource_name_suffix,
+                          evaluation_periods=1,
+                          comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+                          threshold=0)
+        alarms.append(folder_delete_dlq_alarm)
+
+        # Create SQS FIFO Queue for Folder Delete Revision
+        folder_delete_revision_queue = sqs.Queue(self, "FolderDeleteRevision-Queue",
+            queue_name="FolderDeleteRevisionQueue" + resource_name_suffix + ".fifo",
+            fifo=True,
+            content_based_deduplication=True,
+            dead_letter_queue=folder_delete_revision_dlq,
+            visibility_timeout=Duration.minutes(2)
+        )
+
+        # Filter Policy for Folder Delete Revision Queue
+        folder_delete_revision_filter_policy = {
+            "FOLDER_ASYNC_ACTION": sns.SubscriptionFilter.string_filter(
+                allowlist=["FOLDER_DELETION"]
+            )
+        }
+        
+        # Subscribe folder delete revision queue to existing topic
+        file_topic.add_subscription(subscriptions.SqsSubscription(folder_delete_revision_queue, filter_policy=folder_delete_revision_filter_policy))
+
         # parameter store
         ssm_tid_credentials = ssm.StringParameter. \
             from_secure_string_parameter_attributes(self, construct_id + "-ssm-tid-credentials", version=1,
@@ -76,6 +112,32 @@ class FileServiceTcpsTriggerStack(Stack):
                                                       "ECOM_REGION": env_context['ecomRegion'],
                                                       "TC_ENVIRONMENT": tc_env.upper()
                                                   }, tracing=Tracing.ACTIVE)
+        
+        folder_delete_revision_lambda_fn = _lambda.Function(self, construct_id + "-Lambda",
+                                            timeout=Duration.minutes(2),
+                                            code=Code.from_asset(
+                                                path=os.getcwd() + "/functions/",
+                                                bundling=BundlingOptions(
+                                                    image=Runtime.PYTHON_3_11.bundling_image,
+                                                    command=["bash", "-c", 
+                                                            "cd FolderDeleteRevisionFunction && "
+                                                            "pip install -r requirements.txt -t /asset-output && "
+                                                            "cp -au . /asset-output"]
+                                                )
+                                            ),
+                                            handler="folder_delete_revision_fn.handler",
+                                            runtime=Runtime.PYTHON_3_11,
+                                            memory_size=1024,
+                                            description="Logs folder delete revisions",
+                                            function_name="FolderDeleteRevisionLambda" + resource_name_suffix,
+                                            log_retention=RetentionDays.THREE_MONTHS,
+                                            environment={
+                                                "TID_CREDENTIALS_PARAMETER": ssm_tid_credentials.parameter_name,
+                                                "TCPS_BASE_URL": env_context['tcpsUrl'],
+                                                "TC_ENVIRONMENT": tc_env.upper()
+                                            },
+                                            tracing=Tracing.ACTIVE
+                                        )
 
         # grant access to read tid credentials from parameter store
         ssm_tid_credentials.grant_read(tcps_trigger_lambda_fn)
