@@ -11,7 +11,7 @@ import os
 import requests
 
 from model.folder_event import FolderDeleteQueueMessage
-from model.folder_event import FolderDeleteRevisionService
+from folder_delete_revision_service import FolderDeleteRevisionService
 from tcps_common.utils import logging_utils
 
 # x-ray tracing configuration
@@ -45,6 +45,7 @@ def handler(event, context):
             
             folder_delete_revision_service.invoke_tcps_api(folder_event)
     except Exception as e:
+        log.error(f"Error processing folder delete revision: {str(e)}")
         raise e 
     
 

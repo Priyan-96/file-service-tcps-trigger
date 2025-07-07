@@ -52,7 +52,7 @@ def test_handler_throws_exception(mocker: MockerFixture):
     input_event = test_data.get_sqs_fifo_msg(is_folder_event=True)
     with pytest.raises(ApiError) as api_error:
         folder_delete_revision_fn.handler(input_event, LambdaContext(str(uuid.uuid4())))
-        assert api_error.__str__() == "Test API call failed"
+    assert str(api_error.value) == "Test API call failed"
 
 
 def raise_error(arg1):

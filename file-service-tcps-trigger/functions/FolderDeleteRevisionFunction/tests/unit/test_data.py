@@ -285,8 +285,12 @@ def get_nested_folder_delete_event_json(modified: datetime = datetime.now()):
         },
         "createdAt": "2025-06-10T16:29:42.186Z",
         "updatedAt": "2025-06-10T16:29:48.446971+0000",
+        "input": {
+            "folderId": "nested-folder-id",
+            "activityId": "nested-activity-id"
+        },
         "result": {
-            "downloadUrl": ""
+            "downloadUrl": "https://example.com/nested-folder/download"
         },
         "expireAt": 1752164982
     }

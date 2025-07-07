@@ -3,10 +3,10 @@ import logging as log
 import os
 from typing import Dict
 from dataclasses import asdict
-from model.folder_event import IdentityAuth
+from tcps_common.auth.identity_auth import IdentityAuth
 from model.folder_event import FolderDeleteQueueMessage
-from model.folder_event import api_client
-from model.folder_event import ApiError
+from tcps_common.utils import api_client
+from tcps_common.utils.api_client import ApiError
 
 
 class FolderDeleteRevisionService(object):
@@ -21,18 +21,20 @@ class FolderDeleteRevisionService(object):
         Performs Folder Delete Revision for the folder event.
         :param folder_event: folder service event derived from sns message
         """
-        folder_id = folder_event.input.folder_id if folder_event else "Unknown"
+        folder_id = folder_event.input.folder_id if folder_event and folder_event.input else "Unknown"
         # Create request body
-        r_b = FolderDeleteRevisionService.prepare_r_b(folder_event)
+        request_body = FolderDeleteRevisionService.prepare_request_body(folder_event)
         # Create request headers
-        r_h = self.__identity_auth
+        request_headers = self.__identity_auth.prepare_request_headers()
         # Prepare API Endpoint
-        a_e = self.__tcps_base_url + "/tc/api/2.0/folders/logRevisionAsync"
+        api_endpoint = self.__tcps_base_url + "/tc/api/2.0/folders/logRevisionAsync"
         
         # Perform the TCPS API call
-        try
-            api_client.ApiClient.make_request("POST", a_e, r_h, r_b)
+        try:
+            api_client.ApiClient.make_request("POST", api_endpoint, request_headers, request_body)
         except ApiError as api_error:
+            if api_error.response_code == 401:
+                self.__identity_auth.clear_access_token_and_expiry()
             raise api_error
         
     @staticmethod
