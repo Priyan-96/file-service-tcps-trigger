@@ -11,8 +11,9 @@ import os
 import requests
 
 from model.folder_event import FolderDeleteQueueMessage
-from model.folder_event import FolderDeleteRevisionService
+from folder_delete_revision_service import FolderDeleteRevisionService
 from tcps_common.utils import logging_utils
+from tcps_common.utils.api_client import ApiError
 
 # x-ray tracing configuration
 from aws_xray_sdk.core import xray_recorder
@@ -44,7 +45,14 @@ def handler(event, context):
             folder_event: FolderDeleteQueueMessage = pyckson.parse(FolderDeleteQueueMessage, json.loads(folder_event_str))
             
             folder_delete_revision_service.invoke_tcps_api(folder_event)
+    except (json.JSONDecodeError, KeyError) as parse_error:
+        log.error(f"Failed to parse folder event: {str(parse_error)}")
+        raise parse_error
+    except ApiError as api_error:
+        log.error(f"API call failed: {str(api_error)}")
+        raise api_error
     except Exception as e:
+        log.error(f"Unexpected error: {str(e)}")
         raise e 
     
 
