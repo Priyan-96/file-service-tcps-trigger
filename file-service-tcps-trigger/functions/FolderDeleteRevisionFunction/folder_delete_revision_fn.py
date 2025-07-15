@@ -11,7 +11,7 @@ import os
 import requests
 
 from model.folder_event import FolderDeleteQueueMessage
-from model.folder_event import FolderDeleteRevisionService
+from folder_delete_revision_service import FolderDeleteRevisionService
 from tcps_common.utils import logging_utils
 
 # x-ray tracing configuration

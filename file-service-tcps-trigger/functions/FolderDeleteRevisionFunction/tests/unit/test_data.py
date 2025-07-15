@@ -18,7 +18,7 @@ class TestFolderDeleteInput(FolderDeleteInput):
     def user_id(self):
         # This is used by the tests but not in the actual model
         # We're adding it dynamically for test compatibility
-        return "drcigGWu0pM"
+        return f"test_user_{random.randint(1000, 9999)}"
 
 
 # Custom wrapper for the queue message that uses our test input class
@@ -43,19 +43,25 @@ def get_folder_delete_event_json(modified: datetime = datetime.now()):
     Returns:
         Dict: JSON representation of a folder delete event
     """
+    # Generate dynamic test data
+    test_user_id = f"test_user_{random.randint(1000, 9999)}"
+    test_uuid = str(uuid.uuid4())
+    test_folder_id = f"test_folder_{generate_random_string(10)}"
+    test_activity_id = f"test_activity_{generate_random_string(10)}"
+    
     folder_delete_event = {
         "createdBy": {
-            "id": "drcigGWu0pM",
-            "tiduuid": "d8b8f9a3-db1d-4f0e-8d90-6307aef3d6ee"
+            "id": test_user_id,
+            "tiduuid": test_uuid
         },
         "createdAt": modified.isoformat(),
         "updatedAt": modified.isoformat(),
         "input": {
-            "folderId": "ljtORDtSe-U",
-            "activityId": "Dyfw481fE9U"
+            "folderId": test_folder_id,
+            "activityId": test_activity_id
         },
         "result": {
-            "downloadUrl": "https://example.com/folder/download/ljtORDtSe-U"
+            "downloadUrl": f"https://test.example.com/folder/download/{test_folder_id}"
         }
     }
     return folder_delete_event

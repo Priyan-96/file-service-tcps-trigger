@@ -27,8 +27,8 @@ class StorageObject(object):
 
 @dataclass
 class FolderDeleteInput(object):
-    f_id: str
-    a_id: str
+    folder_id: str
+    activity_id: str
 
 @dataclass
 class FolderDeleteError(object):
@@ -37,7 +37,7 @@ class FolderDeleteError(object):
 
 @dataclass
 class FolderDeleteResult(object):
-    d_url: Optional[str] = None
+    download_url: Optional[str] = None
     object_to_delete: Optional[StorageObject] = None
     object_deleted: Optional[StorageObject] = None
     type: Optional[str] = None
