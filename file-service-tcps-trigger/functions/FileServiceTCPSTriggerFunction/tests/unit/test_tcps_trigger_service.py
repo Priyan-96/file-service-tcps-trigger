@@ -4,9 +4,9 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 
-from auth import tid_config_util
+from tcps_common.auth import tid_config_util
 from tests.unit import test_data
-from utils.api_client import ApiError
+from tcps_common.utils.api_client import ApiError
 
 tcps_base_url = "https://app.int.connect.trimble.com"
 
