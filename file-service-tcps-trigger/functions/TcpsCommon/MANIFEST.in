@@ -1,0 +1,2 @@
+prune *.egg-info
+exclude *.md *.in *.egg-info SOURCES.txt
